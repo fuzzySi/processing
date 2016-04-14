@@ -1,0 +1,71 @@
+// attack | sustain | release envelope, as used in synths
+// from a conversation on the processing forum 
+// https://forum.processing.org/two/discussion/15885/how-to-make-an-adsr
+
+int attackTime = 1000; // milliseconds
+int sustainLevel = 100; // percent
+int releaseTime = 3000; // ms
+int screenLength = 10000; // ms between screen refreshes
+
+//working values
+float value; // output value
+float currentValue = 0; // value at start of each segment
+long startTime;
+long attackEndTime;
+long releaseEndTime;
+int x = 0;
+long startXaxis;
+
+boolean newTrigger = false;
+boolean releaseTrigger = false;
+
+void setup() {
+  size(800, 600);
+  background(100);
+  screenLength = 10000; // let's make X axis of screen represent 10 secs
+  startXaxis = millis();
+  stroke(255);
+}
+
+void draw() {
+  if (newTrigger) {
+    startTime = millis();
+    releaseEndTime = startTime; // turn off release phase
+    attackEndTime = startTime + attackTime;
+    currentValue = value; // find out current level
+    newTrigger = false;
+  }
+  if (millis() < attackEndTime) {
+    value = map(millis(), startTime, attackEndTime, currentValue, sustainLevel); 
+    println(value);
+  } 
+
+  if (releaseTrigger) {
+    releaseTrigger = false;
+    currentValue = value; // find out current value, as might release before end of attack phase
+    startTime = millis(); // reuse this for start of release phase
+    attackEndTime = startTime; // to turn off attack
+    releaseEndTime = startTime + releaseTime; 
+  }
+  if (millis() < releaseEndTime) {
+    value = map(millis(), startTime, releaseEndTime, currentValue, 0); 
+    println(value);
+  }
+  x = (int)((millis() - startXaxis) * width / screenLength);
+  if (x > width) {
+    startXaxis = millis();
+    x = 0; // start at L side again
+    background(100); // comment this out to stop refreshing screen
+  }
+  ellipse(x, height - (height * value / 100), 2, 2); 
+}
+
+void mousePressed() {
+  newTrigger = true;
+  // attackTime = mouseX * 3; // uncomment these so mouse position varies the attack and release rates
+  // releaseTime = mouseY * 5;
+}
+
+void mouseReleased() {
+  releaseTrigger = true;
+}
