@@ -1,0 +1,87 @@
+// processing sketch which simulates the 4 phases of an ADSR envelope, as used in synthesisers (atttack, decay, sustain, release)
+// from a conversation on the processing forum 
+// https://forum.processing.org/two/discussion/15885/how-to-make-an-adsr
+
+
+// try altering these values
+int attackTime = 1000; // milliseconds
+int peakLevel = 100; // percent of height of screen
+int decayTime = 500;  // ms
+int sustainLevel = 80; // percent
+int releaseTime = 3000; // ms
+int screenLength = 5000; // ms between screen refreshes
+
+//working values
+float value; // output value
+float currentValue = 0; // value at start of each segment
+long startTime, attackEndTime, decayStartTime, releaseEndTime;
+float x = 0.0;
+float y = 0.0;
+long startXaxis;
+boolean newTrigger = false;
+boolean releaseTrigger = false;
+
+void setup() {
+  size(800, 600);
+  background(100);
+  startXaxis = millis();
+  stroke(255);
+}
+
+void draw() {
+  y = checkADSR(); // looks at ADSR function which returns y value
+  drawADSR(y); // sends y value to draw function
+  // println(y);
+}
+
+void mousePressed() {
+  newTrigger = true;
+  // attackTime = mouseX * 3; // uncomment these so mouse position varies the attack and release rates
+  // releaseTime = mouseY * 5;
+}
+
+void mouseReleased() {
+  releaseTrigger = true;
+}
+
+void drawADSR(float yValue) {
+  x = (millis() - startXaxis) * width / screenLength;
+  if (x > width) {
+    startXaxis = millis();
+    x = 0.0; // start at L side again
+    stroke(random(255), random(255), random(255)); // random colour each time
+    // background(100); // uncomment this out to refresh screen
+  }
+  ellipse(x, height - (height * yValue / 100), 2, 2);
+  println(x);
+}
+
+float checkADSR() {
+  if (newTrigger) {
+    startTime = millis();
+    releaseEndTime = startTime; // turn off release phase
+    attackEndTime = startTime + attackTime + decayTime;
+    decayStartTime = startTime + attackTime;
+    currentValue = value; // find out current level
+    newTrigger = false;
+  }
+  if (millis() < attackEndTime) {
+    if (millis() < decayStartTime) {
+      value = map(millis(), startTime, decayStartTime, currentValue, peakLevel);
+    } else {
+      value = map(millis(), decayStartTime, attackEndTime, peakLevel, sustainLevel);
+    }
+  } 
+
+  if (releaseTrigger) {
+    releaseTrigger = false;
+    currentValue = value; // find out current value, as might release before end of attack phase
+    startTime = millis(); // reuse this for start of release phase
+    attackEndTime = startTime; // to turn off attack
+    releaseEndTime = startTime + releaseTime;
+  }
+  if (millis() < releaseEndTime) {
+    value = map(millis(), startTime, releaseEndTime, currentValue, 0); 
+  }
+  return value;
+}
