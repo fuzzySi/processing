@@ -1,0 +1,61 @@
+// how to get sample player working in beads & processing
+// shows sample players connected to separate mixer channels
+// https://forum.processing.org/two/discussion/16783/problem-beads-and-control-p5#latest
+
+ 
+import beads.*;
+AudioContext ac;
+SamplePlayer musiquePlay, son1, son2;
+Gain musiqueGain, sonGain;
+float sonVolume = 0.6;
+float musiqueVolume = 0.7;
+ 
+void setup()
+{
+  size(800, 600);
+  ac = new AudioContext(); 
+  try {
+    // copy these SamplePlayers to make more sounds
+    musiquePlay = new SamplePlayer(ac, new Sample(sketchPath("") + "DrumMachine/ClosedHihat.wav")); // change these to local samples
+    son1 = new SamplePlayer(ac, new Sample(sketchPath("") + "DrumMachine/Rimshot.wav"));
+    son2 = new SamplePlayer(ac, new Sample(sketchPath("") + "DrumMachine/Soft Bassdrum.wav"));
+  }
+  catch(Exception e)
+  {
+    println("Exception while attempting to load sample!");
+    e.printStackTrace();
+    exit();
+  }
+ 
+  son1.setKillOnEnd(false); // if you want to reuse the sample
+  son2.setKillOnEnd(false);
+  musiquePlay.setKillOnEnd(false);
+ 
+  sonGain = new Gain(ac, 1, sonVolume); // set volumes for each channel
+  musiqueGain = new Gain(ac, 1, musiqueVolume);
+ 
+  sonGain.addInput(son1); // connect each sample player to relevant channel of mixer
+  sonGain.addInput(son2);  
+  musiqueGain.addInput(musiquePlay);
+ 
+  ac.out.addInput(sonGain); // join son & musique outs here into final mix
+  ac.out.addInput(musiqueGain);
+ 
+  ac.start(); 
+  background(0); 
+ 
+  musiquePlay.reTrigger(); // start background music
+ 
+} // end setup
+ 
+void draw() {
+  // call son1.reTrigger() from here to play that sound
+}
+ 
+void mousePressed() { // so you can test it
+  if ( mouseButton == LEFT ) {
+    son1.reTrigger(); // play the audio file
+  } else  {
+    son2.reTrigger();
+  }
+}
