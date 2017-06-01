@@ -1,0 +1,101 @@
+// this processing sketch flys a phrase in from the distance, to read legibly, briefly, before disappearing towards the viewer
+
+
+String phrase="vote Green"; // can be anything!
+float timeToArrive = 15000; // in milliseconds
+int sizeOfText = 50; 
+float kerning = 0.6; // space between letters
+
+float radius = 2000; // distance away from centre letters start from
+float randomness = 0.5; // range of how far away letters start from, 1 is completely random, 0 not at all
+
+
+float[] startLetterX;
+float[] startLetterY;
+float[] startLetterZ;
+float[] letterX;
+float[] letterY;
+float[] letterZ;
+float[] endLetterX;
+float[] endLetterY;
+float[] startRotateX;
+float[] startRotateY;
+float[] startRotateZ;
+float[] rotateX;
+float[] rotateY;
+float[] rotateZ;
+int phraseLength = phrase.length();
+PFont f;
+
+// always prints to centre
+int startTime = millis();
+float progress = 0.0;
+
+void setup() {
+  size(600, 600, P3D);
+  textMode(SHAPE);
+  background(0);
+
+  startLetterX = new float[phraseLength];
+  startLetterY = new float[phraseLength];
+  startLetterZ = new float[phraseLength];
+  startRotateX = new float[phraseLength];
+  startRotateY = new float[phraseLength];
+  startRotateZ = new float[phraseLength];
+  letterX = new float[phraseLength];
+  letterY = new float[phraseLength];
+  letterZ = new float[phraseLength];
+  rotateX = new float[phraseLength];
+  rotateY = new float[phraseLength];
+  rotateZ = new float[phraseLength];
+  endLetterX = new float[phraseLength];
+  endLetterY = new float[phraseLength];
+
+  int startFontX = int((width / 2) - ((0 + (phraseLength / 2)) * sizeOfText * kerning));
+  int startFontY = (height / 2) - (sizeOfText / 2);
+
+  printArray(PFont.list());
+  f = createFont("SourceCodePro-Regular.ttf", 24);
+  textFont(f);
+  textAlign(CENTER, CENTER);
+  textSize(sizeOfText);
+
+  for (int i = 0; i < phraseLength; i ++) {
+
+    startLetterX[i] =  (width / 2) + (cos(random(TWO_PI)) * random((radius * randomness), (radius * (1 + randomness))));
+    startLetterY[i] =  (height / 2) + (sin(random(TWO_PI)) * random((radius * randomness), (radius * (1 + randomness)))); 
+    startLetterZ[i] = -3000; //random(-100, 100);
+    startRotateX[i] = random(TWO_PI);
+    startRotateY[i] = random(TWO_PI);
+    startRotateZ[i] = random(TWO_PI);
+    endLetterX[i] = int(startFontX + (i * sizeOfText * kerning));
+    endLetterY[i] = startFontY;
+  }
+  println(phraseLength);
+} 
+
+void draw() {
+  background(0);
+  fill(255);
+  progress = (millis() - startTime) / timeToArrive;
+  //  println(progress);
+  for (int i = 0; i < phraseLength; i ++) {
+    pushMatrix();
+    letterX[i] = lerp(startLetterX[i], endLetterX[i], progress);
+    letterY[i] = lerp(startLetterY[i], endLetterY[i], progress);
+    letterZ[i] = lerp(startLetterZ[i], 0, progress);
+    rotateX[i] = lerp(startRotateX[i], 0, progress);
+    rotateY[i] = lerp(startRotateX[i], 0, progress);
+    rotateZ[i] = lerp(startRotateX[i], 0, progress);
+    translate(0, 0, int(letterZ[i]));
+    rotateX(rotateX[i]);
+    rotateY(rotateY[i]);
+    rotateZ(rotateZ[i]);
+    char letter = phrase.charAt(i); 
+    text(letter, int(letterX[i]), int(letterY[i]));
+    popMatrix();
+    if (progress >= 1) {
+    //  text(letter, endLetterX[i], endLetterY[i], 0); // comment out this line to block text which stays
+    }
+  }
+}
