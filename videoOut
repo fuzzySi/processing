@@ -1,0 +1,13 @@
+// spits out an image every x ms
+// code fragments only
+
+// in set up
+int fps = 25;
+long nextFrame = millis();
+
+
+// in loop
+  if (millis() > nextFrame) {
+    saveFrame("line-######.png");
+    nextFrame = millis() + int((1000 / fps));
+  }
