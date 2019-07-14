@@ -12,3 +12,6 @@ simple reaction time game to test the pins on a raspberry pi with processing.
 1 demo to show how to draw a sine wave - used building a LFO
 #
 one draws Mr Smiley. 
+#
+random phrase doesn't work on pi due to use of pFont. 
+#
