@@ -1,0 +1,352 @@
+// This is a p5 (processing) program to generate a song title, key, bpm, notes you might like to use, and possible moods. 
+// Please feel encouraged to ignore the ideas it comes up with, as rejecting these ideas may push you in an unexpected direction. 
+// This is derived from code by Tom Whitwell: https://gist.github.com/TomWhitwell/12d06d39571c3e19fb7457dc17c4915c
+// and came from ideas by Dennis DeSantis https://cdn-resources.ableton.com/resources/uploads/makingmusic/MakingMusic_DennisDeSantis.pdf
+// This article explains how Tom used the code: https://medium.com/music-thing-modular-notes/how-i-recorded-an-album-in-an-evening-with-a-lunchbox-modular-and-a-python-script-443ca08f34da
+
+// You can run the code here: https://editor.p5js.org/fuzzySi/sketches/SfcMmDy-R
+
+// Obviously, feel free to share & improve this
+// @fuzzySynths
+
+
+// editable parameters
+let noOfMoods = 3;
+let minBPM = 40;
+let maxBPM = 200;
+let maxNameLength = 12;
+
+// appearance
+let sizeOfText = 26
+
+let rejectX = 50; // position of buttons
+let acceptX = 250;
+let boxY = 280;
+let boxSize = 100;
+let textX = 30;
+let nameY = 50;
+let keyY = 100;
+let notesY = 150;
+let moodY = 200;
+
+// set up working variables
+let name = "";
+let keepName = "";
+let keyName = "";
+let progress = 0;
+
+function setup() {
+  createCanvas(400, 400);
+  background(220);
+  textSize(sizeOfText);
+
+}
+
+function draw() {
+  nameLength = int(random(maxNameLength - 3)) + 3;
+
+
+  if (progress == 0) {
+    var name = "";
+    vowels = ['a', 'e', 'i', 'o', 'u']
+    consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z']
+    c = int(random(consonants.length));
+    v = int(random(vowels.length));
+    var r = int(random(2)) + 2
+    for (let i = 0; i < nameLength; i++) {
+      var a = i % r;
+      if (a != 0) {
+        x = int(random(consonants.length));
+        name += consonants[x];
+      } else {
+        x = int(random(vowels.length));
+        name += vowels[x];
+      }
+    }
+    name = name.charAt(0).toUpperCase() + name.substr(1, name.length).toLowerCase();
+    keepName = name;
+    // console.log(name);
+    progress++;
+    background(220);
+    fill(50);
+    textStyle(ITALIC);
+    text(keepName, textX, nameY);
+    textStyle(NORMAL);
+
+    drawBoxes();
+
+  }
+
+  // if happy with this, carry on
+  if (progress == 2) {
+    keys = ['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab'];
+    mode = ['major', 'minor'];
+    bpm = (int(random((maxBPM - minBPM) / 4)) * 4) + minBPM;
+    k = int(random(keys.length));
+    m = int(random(mode.length));
+    keySig = keys[k];
+
+    if (m == 1) { // minor key
+      if (keySig === 'Bb') {
+        keySig = 'A#';
+      }
+      if (keySig === 'Eb') {
+        keySig = 'D#';
+      }
+      if (keySig === 'Ab') {
+        keySig = 'G#';
+      }
+    }
+    if (m == 0) { // major key
+      if (keySig === 'C#') {
+        keySig = 'Db';
+      }
+      if (keySig === 'F#') {
+        keySig = 'Gb';
+      }
+    }
+
+    keyName = "";
+    keyName += keySig;
+    keyName += " ";
+    keyName += mode[m];
+    keyName += ", ";
+    keyName += bpm;
+    keyName += " bpm";
+    background(220);
+    fill(50);
+    textStyle(ITALIC);
+    text(keepName, textX, nameY);
+    textStyle(NORMAL);
+    text(keyName, textX, keyY);
+    drawBoxes();
+    progress++;
+  }
+
+  if (progress == 4) {
+    n0 = int(random(keys.length));
+    n1 = int(random(keys.length));
+    n2 = int(random(keys.length));
+    notes = "Notes: ";
+    notes += keys[n0];
+    notes += ", ";
+    notes += keys[n1];
+    notes += ", ";
+    notes += keys[n2];
+    background(220);
+    fill(50);
+    textStyle(ITALIC);
+    text(keepName, textX, nameY);
+    textStyle(NORMAL);
+    text(keyName, textX, keyY);
+    text(notes, textX, notesY);
+    drawBoxes();
+    progress++;
+  }
+
+  if (progress == 6) {
+    mood = "";
+    for (let i = 0; i < noOfMoods - 1; i++) {
+      mood += chooseMood();
+      mood += ", ";
+    }
+    mood += chooseMood();
+    background(220);
+    fill(50);
+    textStyle(ITALIC);
+    text(keepName, textX, nameY);
+    textStyle(NORMAL);
+    text(keyName, textX, keyY);
+    text(notes, textX, notesY);
+    rectMode(CORNERS);
+    text(mood, textX, moodY, 340, boxY - 20);
+    rectMode(CORNER);
+    drawBoxes();
+    progress++;
+  }
+  if (progress == 8) {
+    writeOutput();
+    progress = 0;
+  }
+}
+
+
+
+function touchEnded() { // this works for mouseReleased as well
+  if ((mouseX > rejectX) && (mouseX < rejectX + boxSize) && (mouseY > boxY) && (mouseY < (boxY + boxSize))) {
+    progress--;
+  }
+  if ((mouseX > acceptX) && (mouseX < acceptX + boxSize) && (mouseY > boxY) && (mouseY < (boxY + boxSize))) {
+    progress++;
+  }
+  return false;
+}
+
+function drawBoxes() {
+  fill("green");
+  rect(acceptX, boxY, boxSize, boxSize);
+  textSize(20);
+  fill(0);
+  text("Accept", acceptX + 20, boxY + (boxSize / 2))
+  fill("red");
+  rect(rejectX, boxY, boxSize, boxSize);
+  fill(0);
+  text("Try again", rejectX + 10, boxY + (boxSize / 2))
+  textSize(sizeOfText);
+}
+
+function chooseMood() {
+  moodChoices = [
+    'Accepted',
+    'Accomplished',
+    'Aggravated',
+    'Alone',
+    'Amused',
+    'Angry',
+    'Annoyed',
+    'Anxious',
+    'Apathetic',
+    'Apologetic',
+    'Ashamed',
+    'Awake',
+    'Bewildered',
+    'Bitchy',
+    'Bittersweet',
+    'Blah',
+    'Blank',
+    'Blissful',
+    'Bored',
+    'Bouncy',
+    'Brooding',
+    'Calm',
+    'Cautious',
+    'Chaotic',
+    'Cheerful',
+    'Chilled',
+    'Chipper',
+    'Cold',
+    'Complacent',
+    'Confused',
+    'Content',
+    'Cranky',
+    'Crappy',
+    'Crazy',
+    'Crushed',
+    'Curious',
+    'Cynical',
+    'Dark',
+    'Defensive',
+    'Delusional',
+    'Demented',
+    'Depressed',
+    'Determined',
+    'Devious',
+    'Dirty',
+    'Disappointed',
+    'Discontent',
+    'Ditzy',
+    'Dorky',
+    'Drained',
+    'Drunk',
+    'Ecstatic',
+    'Energetic',
+    'Enraged',
+    'Enthralled',
+    'Envious',
+    'Exanimate',
+    'Excited',
+    'Exhausted',
+    'Fearful',
+    'Flirty',
+    'Forgetful',
+    'Frustrated',
+    'Full',
+    'Geeky',
+    'Giddy',
+    'Giggly',
+    'Gloomy',
+    'Good',
+    'Grateful',
+    'Groggy',
+    'Grumpy',
+    'Guilty',
+    'Happy',
+    'Heartbroken',
+    'High',
+    'Hopeful',
+    'Hot',
+    'Hungry',
+    'Hyper',
+    'Impressed',
+    'Indescribable',
+    'Indifferent',
+    'Infuriated',
+    'Irate',
+    'Irritated',
+    'Jealous',
+    'Joyful',
+    'Jubilant',
+    'Lazy',
+    'Lethargic',
+    'Listless',
+    'Lonely',
+    'Loved',
+    'Mad',
+    'Melancholy',
+    'Mellow',
+    'Mischievous',
+    'Moody',
+    'Morose',
+    'Naughty',
+    'Nerdy',
+    'Numb',
+    'Okay',
+    'Optimistic',
+    'Peaceful',
+    'Pessimistic',
+    'Pissed off',
+    'Pleased',
+    'Predatory',
+    'Quixotic',
+    'Rapturous',
+    'Recumbent',
+    'Refreshed',
+    'Rejected',
+    'Rejuvenated',
+    'Relaxed',
+    'Relieved',
+    'Restless',
+    'Rushed',
+    'Sad',
+    'Satisfied',
+    'Shocked',
+    'Sick',
+    'Silly',
+    'Sleepy',
+    'Smart',
+    'Stressed',
+    'Surprised',
+    'Sympathetic',
+    'Thankful',
+    'Tired',
+    'Touched',
+    'Uncomfortable',
+    'Weird'
+  ]
+  m = int(random(moodChoices.length));
+  return moodChoices[m];
+
+}
+
+function writeOutput() {
+  const writer = createWriter('song.txt');
+  writer.print("Song idea:");
+  writer.print(keepName);
+  writer.print(keyName);
+  writer.print(notes);
+  writer.print(mood);
+  writer.print("");
+   writer.print("generated by https://editor.p5js.org/fuzzySi/sketches/SfcMmDy-R");
+  writer.close();
+  writer.clear();
+}
